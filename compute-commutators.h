@@ -3,8 +3,6 @@
 
 #include "compute-commutators-util.h"
 
-#include <map>
-#include <set>
 #include <string>
 #include <vector>
 
@@ -12,6 +10,7 @@ namespace compute_commutators {
 
 typedef std::vector<int> term;
 typedef compute_commutators_util::single_coeffs single_coeffs;
+typedef compute_commutators_util::TermsToCoeffsMap TermsToCoeffsMap;
 
 class ComputeCommutators {
  public:
@@ -30,11 +29,9 @@ class ComputeCommutators {
   */
  private:
   int num_orbitals;
-  std::map<term, std::vector<single_coeffs> >
-      initial_terms_to_coefficients;
+  TermsToCoeffsMap initial_terms_to_coefficients;
   std::vector<term> interleaved_order;
-  std::map<term, std::vector<single_coeffs> >
-      final_terms_to_coefficients;
+  TermsToCoeffsMap final_terms_to_coefficients;
 };
 
 } //  namespace compute_commutators

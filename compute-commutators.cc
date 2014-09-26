@@ -1,40 +1,46 @@
 #include "compute-commutators.h"
+#include "compute-commutators-util.h"
 
 namespace compute_commutators {
 
-typedef compute_commutators::ComputeCommutators::single_coeffs single_coeffs;
+typedef compute_commutators_util::single_coeffs single_coeffs;
 
 ComputeCommutators::ComputeCommutators(int n) : num_orbitals(n) {} 
 
-void ComputeCommutators::AddInitialTerms()
-{
+void ComputeCommutators::AddInitialTerms() {
   for (int p = 0; p <= num_orbitals; ++p) {
     for (int q = 0; q <= num_orbitals; ++q) {
-      term curr_term {p, -1 * q}, curr_coeff_term {p, -1 * q};
+      term curr_term;
+      curr_term.push_back(p);
+      curr_term.push_back(-1 * q);
+      term curr_coeff_term(curr_term);
 
-      single_coeffs curr_coeff;
-      std::set<std::vector<int> > prod_of_coeffs;
-      prod_of_coeffs.insert(curr_coeff_term);
-      curr_coeff.product_of_coeffs = prod_of_coeffs;
-      std::vector<single_coeffs> sum_of_coeffs;
-      sum_of_coeffs.push_back(curr_coeff);
+      initial_terms_to_coefficients.AddNormalForm(curr_term,
+          compute_commutators_util::ComputeCommutatorsUtil::GetInitialSumCoeffs(
+          curr_coeff_term));
 
-      initial_terms_to_coefficients[curr_term] = sum_of_coeffs;
+      for (int r = 0; r <= num_orbitals; ++r) {
+        for (int s = 0; s <= num_orbitals; ++s) {
+          term curr_term;
+          curr_term.push_back(p);
+          curr_term.push_back(q);
+          curr_term.push_back(-1 * r);
+          curr_term.push_back(-1 * s);
+          term curr_coeff_term(curr_term);
 
-      for (r = 0; r <= num_orbitals; ++r) {
-        for (s = 0; s <= num_orbitals; ++s) {
+          initial_terms_to_coefficients.AddNormalForm(curr_term,
+              compute_commutators_util::ComputeCommutatorsUtil
+              ::GetInitialSumCoeffs(curr_coeff_term));
         }
       }
     }
   } 
 }
 
-void ComputeCommutators::InterleaveTerms()
-{
+void ComputeCommutators::InterleaveTerms() {
 }
 
-void CalculateTrotterError()
-{
+void CalculateTrotterError() {
 }
 
 }  // namespace compute-commutators

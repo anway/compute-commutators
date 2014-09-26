@@ -1,4 +1,5 @@
 # Compiled Object files
+compute-commutators
 *.slo
 *.lo
 *.o
