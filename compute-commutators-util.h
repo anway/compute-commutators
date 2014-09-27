@@ -22,11 +22,13 @@ class ComputeCommutatorsUtil {
  public:
   static std::vector<single_coeffs> GetInitialSumCoeffs(
       std::vector<int> curr_coeff_term);
+  static term GetConjugate(term curr_term);
 };
 
 class TermsToCoeffsMap {
  public:
   void AddNormalForm(term curr_term, std::vector<single_coeffs> curr_coeff);
+  void RemoveComplexConjugates();
  private:
   std::map<term, std::vector<single_coeffs> > terms_to_coefficients;
 };

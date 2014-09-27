@@ -35,6 +35,7 @@ void ComputeCommutators::AddInitialTerms() {
       }
     }
   } 
+  initial_terms_to_coefficients.RemoveComplexConjugates();
 }
 
 void ComputeCommutators::InterleaveTerms() {
