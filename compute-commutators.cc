@@ -5,11 +5,13 @@ namespace compute_commutators {
 
 typedef compute_commutators_util::single_coeffs single_coeffs;
 
-ComputeCommutators::ComputeCommutators(int n) : num_orbitals(n) {} 
+ComputeCommutators::ComputeCommutators(int n, bool verbose) : num_orbitals(n),
+    verbose(verbose) {} 
 
 void ComputeCommutators::AddInitialTerms() {
-  for (int p = 0; p <= num_orbitals; ++p) {
-    for (int q = 0; q <= num_orbitals; ++q) {
+  for (int p = 1; p <= num_orbitals; ++p) {
+    for (int q = 1; q <= num_orbitals; ++q) {
+      // pq term.
       term curr_term;
       curr_term.push_back(p);
       curr_term.push_back(-1 * q);
@@ -19,8 +21,9 @@ void ComputeCommutators::AddInitialTerms() {
           compute_commutators_util::ComputeCommutatorsUtil::GetInitialSumCoeffs(
           curr_coeff_term));
 
-      for (int r = 0; r <= num_orbitals; ++r) {
-        for (int s = 0; s <= num_orbitals; ++s) {
+      for (int r = 1; r <= num_orbitals; ++r) {
+        for (int s = 1; s <= num_orbitals; ++s) {
+          // pqrs term.
           term curr_term;
           curr_term.push_back(p);
           curr_term.push_back(q);
@@ -39,6 +42,17 @@ void ComputeCommutators::AddInitialTerms() {
 }
 
 void ComputeCommutators::InterleaveTerms() {
+  // First add Hpp terms.
+  for (int p = 1; p <= num_orbitals; ++p) {
+    term curr_term;
+    curr_term.push_back(p);
+    curr_term.push_back(-1 * p);
+
+    if (initial_terms_to_coefficients.HasTerm(curr_term)) {
+      interleaved_order.push_back(curr_term);
+    }
+  } 
+  // Now add Hpqqp terms.
 }
 
 void CalculateTrotterError() {
