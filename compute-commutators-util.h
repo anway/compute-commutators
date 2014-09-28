@@ -18,7 +18,7 @@ typedef std::vector<int> term;
 // We will then represent a sum of single_coeff with a vector of single_coeffs
 struct single_coeffs {
   int integer_multiplier = 1;
-  std::set<std::vector<int> > product_of_coeffs;
+  std::multiset<std::vector<int> > product_of_coeffs;
 };
 
 class ComputeCommutatorsUtil {
@@ -36,6 +36,10 @@ class ComputeCommutatorsUtil {
   static void PrintIndices(term curr_term);
   // Print a vector of single_coeffs
   static void PrintSumOfCoeffs(std::vector<single_coeffs> sum_of_coeffs);
+  // Multiply two coefficient vectors term by term to get a new coefficient
+  // vector.
+  static std::vector<single_coeffs> MultiplySumOfCoeffs(
+      std::vector<single_coeffs> first, std::vector<single_coeffs> second); 
 };
 
 // Wrapper class for terms_to_coeffs map

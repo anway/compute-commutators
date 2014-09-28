@@ -9,7 +9,7 @@ std::vector<single_coeffs> ComputeCommutatorsUtil::GetInitialSumCoeffs(
   // Return a sum of single_coeffs that has just one coeff in the sum (the
   // one corresponding to the initial term).
   single_coeffs curr_coeff;
-  std::set<std::vector<int> > prod_of_coeffs;
+  std::multiset<std::vector<int> > prod_of_coeffs;
   prod_of_coeffs.insert(curr_coeff_term);
   curr_coeff.product_of_coeffs = prod_of_coeffs;
   std::vector<single_coeffs> sum_of_coeffs;
@@ -50,6 +50,43 @@ void ComputeCommutatorsUtil::PrintSumOfCoeffs(std::vector<single_coeffs>
       printf(" + ");
     }
   }
+}
+
+std::vector<single_coeffs> MultiplySumOfCoeffs(std::vector<single_coeffs> first,
+    std::vector<single_coeffs> second) {
+  // result will carry result of multiplication
+  std::vector<single_coeffs> result;
+  for (const single_coeffs& first_term : first) {
+    for (const single_coeffs& second_term : second) {
+      // first multiply just the symbolic terms (without coefficient)
+      std::multiset<std::vector<int> > new_term;
+      new_term.insert(first_term.product_of_coeffs.begin(),
+          first_term.product_of_coeffs.end());
+      new_term.insert(second_term.product_of_coeffs.begin(),
+          second_term.product_of_coeffs.end());    
+      // check if resulting symbolic term has already been seen in this
+      // multiplication
+      std::vector<single_coeffs>::iterator it_result;
+      for (it_result = result.begin(); it_result != result.end();
+          ++it_result) {
+        if (it_result->product_of_coeffs == new_term) {
+          break;
+        }
+      }
+      // if not, push new symbolic term and coefficient
+      if (it_result == result.end()) {
+        single_coeffs new_term_result;
+        new_term_result.integer_multiplier = first_term.integer_multiplier *
+            second_term.integer_multiplier;
+        new_term_result.product_of_coeffs = new_term;
+        result.push_back(new_term_result);
+      } else {  // if so, just add to coefficient of existing term
+        it_result->integer_multiplier += first_term.integer_multiplier *
+            second_term.integer_multiplier; 
+      }
+    }
+  }
+  return result;
 }
 
 void TermsToCoeffsMap::AddNormalForm(term curr_term,
