@@ -3,6 +3,7 @@
 
 #include "compute-commutators-util.h"
 
+#include <set>
 #include <string>
 #include <vector>
 
@@ -22,12 +23,15 @@ class ComputeCommutators {
   void AddInitialTerms();
   // Prepare the order of terms for the final calculation of Trotter error.
   void InterleaveTerms();
+  // Helper for InterleaveTerms to add terms to interleaved_order
+  void AddTermToInterleavedOrder(term curr_term);
   // Calculate the Trotter error using the terms arranged in the order from
   // InterleaveTerms, and with the complex conjugates added back in.
   void CalculateTrotterError();
  private:
   int num_orbitals;
   TermsToCoeffsMap initial_terms_to_coefficients;
+  std::set<term> initial_terms;
   std::vector<term> interleaved_order;
   TermsToCoeffsMap final_terms_to_coefficients;
   bool verbose;

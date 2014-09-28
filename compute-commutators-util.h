@@ -32,8 +32,13 @@ class ComputeCommutatorsUtil {
   // Returns the conjugate of a term in normal order, or an empty list is a term
   // is its own conjugate.
   static term GetConjugate(term curr_term);
+  // Print a vector of ints
+  static void PrintIndices(term curr_term);
+  // Print a vector of single_coeffs
+  static void PrintSumOfCoeffs(std::vector<single_coeffs> sum_of_coeffs);
 };
 
+// Wrapper class for terms_to_coeffs map
 class TermsToCoeffsMap {
  public:
   // Adds a term and coefficient to the map, with the term in normal order
@@ -42,6 +47,12 @@ class TermsToCoeffsMap {
   // Removes complex conjugates from the map.
   void RemoveComplexConjugates();
   bool HasTerm(term curr_term);
+  // Return iterator to start of map.
+  std::map<term, std::vector<single_coeffs> >::iterator Begin();
+  // Return iterator to end of map.
+  std::map<term, std::vector<single_coeffs> >::iterator End();
+  // Returns value corresponding to key, or throws an exception if no value.
+  std::vector<single_coeffs> At(term key);
  private:
   std::map<term, std::vector<single_coeffs> > terms_to_coefficients;
 };

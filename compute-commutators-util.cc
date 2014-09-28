@@ -30,6 +30,28 @@ term ComputeCommutatorsUtil::GetConjugate(term curr_term) {
   return conjugate;
 }
 
+void ComputeCommutatorsUtil::PrintIndices(term curr_term) {
+  printf("[ ");
+  for (int index : curr_term) {
+    printf("%d ", index);
+  }
+  printf("] ");
+}
+
+void ComputeCommutatorsUtil::PrintSumOfCoeffs(std::vector<single_coeffs>
+    sum_of_coeffs) {
+  for (auto it = sum_of_coeffs.begin(); it != sum_of_coeffs.end();
+      ++it) {
+    printf("%d * ", (*it).integer_multiplier);
+    for (const auto& prod_of_terms : (*it).product_of_coeffs) {
+      PrintIndices(prod_of_terms);
+    }  
+    if (it != sum_of_coeffs.end() - 1) {
+      printf(" + ");
+    }
+  }
+}
+
 void TermsToCoeffsMap::AddNormalForm(term curr_term,
     std::vector<single_coeffs> curr_coeff) {
   for (std::vector<int>::iterator it = curr_term.begin(); it != curr_term.end();
@@ -94,6 +116,20 @@ bool TermsToCoeffsMap::HasTerm(term curr_term) {
   } else {
     return false;
   }
+}
+
+std::map<term, std::vector<single_coeffs> >::iterator TermsToCoeffsMap
+    ::Begin() {
+  return terms_to_coefficients.begin();
+}
+
+std::map<term, std::vector<single_coeffs> >::iterator TermsToCoeffsMap
+    ::End() {
+  return terms_to_coefficients.end();
+}
+
+std::vector<single_coeffs> TermsToCoeffsMap::At(term key) {
+  return terms_to_coefficients.at(key);
 }
 
 }  // namespace compute_commutators_util
