@@ -1,6 +1,8 @@
 #include "compute-commutators.h"
 #include "compute-commutators-util.h"
 
+#include <time.h>
+
 namespace compute_commutators {
 
 typedef compute_commutators_util::single_coeffs single_coeffs;
@@ -46,7 +48,7 @@ void ComputeCommutators::AddInitialTerms() {
   }
 }
 
-void ComputeCommutators::AddTermToInterleavedOrder(term curr_term) {
+void ComputeCommutators::AddTermToInterleavedOrder(const term& curr_term) {
   if (initial_terms_to_coefficients.HasTerm(curr_term)) {
     auto it = initial_terms.find(curr_term);
     if (it != initial_terms.end()) { 
@@ -126,18 +128,23 @@ void ComputeCommutators::InterleaveTerms() {
   }
 }
 
-std::pair<term, std::vector<single_coeffs> > ComputeCommutators
-    ::GetTermForTrotter(int index) {
+std::pair<std::vector<term>, std::vector<single_coeffs> > ComputeCommutators
+    ::GetTermForTrotter(const int& index) {
   term curr_term = interleaved_order[index];
   term curr_conjugate = compute_commutators_util::ComputeCommutatorsUtil
       ::GetConjugate(curr_term);
   std::vector<single_coeffs> curr_coeff =
       initial_terms_to_coefficients.At(curr_term);
+  std::vector<term> term_and_conjugate;
   if (!curr_conjugate.empty()) {
-    curr_term.insert(curr_term.end(), curr_conjugate.begin(),
-        curr_conjugate.end());    
+    // return both term and conjugate if conjugate and term differ
+    term_and_conjugate.push_back(curr_term);
+    term_and_conjugate.push_back(curr_conjugate);
+  } else {
+    // otherwise return just term
+    term_and_conjugate.push_back(curr_term);
   }
-  return std::make_pair(curr_term, curr_coeff);
+  return std::make_pair(term_and_conjugate, curr_coeff);
 }
 
 void ComputeCommutators::CalculateTrotterError() {
@@ -147,6 +154,9 @@ void ComputeCommutators::CalculateTrotterError() {
   }
   int one_percent = num_commutators / 100.0;
   printf("There are %d possible commutators.\n", num_commutators);
+  int counter = 0;
+  clock_t time;
+  time = clock();
 
   // Loop over the possible combinations a <= b, c < b of
   // (1 / 12) * [A * (1 - delta(A, B)/2), [B, C]] = ...
@@ -155,22 +165,34 @@ void ComputeCommutators::CalculateTrotterError() {
   // Loop over B.
   for (int b = 0; b < num_terms; ++b) {
     const auto& B_term_coeff = GetTermForTrotter(b);
-    term B = B_term_coeff.first;
+    std::vector<term> B_terms = B_term_coeff.first;
     std::vector<single_coeffs> B_coeff = B_term_coeff.second;
 
     // Loop over A.
     for (int a = 0; a <= b; ++a) {
       const auto& A_term_coeff = GetTermForTrotter(a);
-      term A = A_term_coeff.first;
+      std::vector<term> A_terms = A_term_coeff.first;
       std::vector<single_coeffs> A_coeff = A_term_coeff.second;
 
       // Loop over C.
       for (int c = 0; c < b; ++c) {
         const auto& C_term_coeff = GetTermForTrotter(c);
-        term C = C_term_coeff.first;
+        std::vector<term> C_terms = C_term_coeff.first;
         std::vector<single_coeffs> C_coeff = C_term_coeff.second;
 
         // Calculate the coefficient (multiplying the 3 terms). 
+        std::vector<single_coeffs> multiplied_coeffs = compute_commutators_util
+            ::ComputeCommutatorsUtil::MultiplySumOfCoeffs(A_coeff, B_coeff);
+        multiplied_coeffs = compute_commutators_util::ComputeCommutatorsUtil
+            ::MultiplySumOfCoeffs(multiplied_coeffs, C_coeff);
+        int scale = (a == b) ? 24.0 : 12.0;
+        for (auto it = multiplied_coeffs.begin(); it != multiplied_coeffs.end();
+            ++it) {
+          it->integer_multiplier /= scale;
+        }
+
+        // Compute commutators.
+        // for (term A :  
       } 
     }
   } 

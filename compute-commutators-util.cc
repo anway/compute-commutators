@@ -5,7 +5,7 @@ namespace compute_commutators_util {
 typedef compute_commutators_util::single_coeffs single_coeffs;
 
 std::vector<single_coeffs> ComputeCommutatorsUtil::GetInitialSumCoeffs(
-    std::vector<int> curr_coeff_term) {
+    const std::vector<int>& curr_coeff_term) {
   // Return a sum of single_coeffs that has just one coeff in the sum (the
   // one corresponding to the initial term).
   single_coeffs curr_coeff;
@@ -18,7 +18,7 @@ std::vector<single_coeffs> ComputeCommutatorsUtil::GetInitialSumCoeffs(
   return sum_of_coeffs;
 }
 
-term ComputeCommutatorsUtil::GetConjugate(term curr_term) {
+term ComputeCommutatorsUtil::GetConjugate(const term& curr_term) {
   term conjugate;
   for (int index : curr_term) {
     conjugate.push_back(-1 * index);
@@ -30,7 +30,7 @@ term ComputeCommutatorsUtil::GetConjugate(term curr_term) {
   return conjugate;
 }
 
-void ComputeCommutatorsUtil::PrintIndices(term curr_term) {
+void ComputeCommutatorsUtil::PrintIndices(const term& curr_term) {
   printf("[ ");
   for (int index : curr_term) {
     printf("%d ", index);
@@ -38,7 +38,7 @@ void ComputeCommutatorsUtil::PrintIndices(term curr_term) {
   printf("] ");
 }
 
-void ComputeCommutatorsUtil::PrintSumOfCoeffs(std::vector<single_coeffs>
+void ComputeCommutatorsUtil::PrintSumOfCoeffs(const std::vector<single_coeffs>&
     sum_of_coeffs) {
   for (auto it = sum_of_coeffs.begin(); it != sum_of_coeffs.end();
       ++it) {
@@ -52,8 +52,9 @@ void ComputeCommutatorsUtil::PrintSumOfCoeffs(std::vector<single_coeffs>
   }
 }
 
-std::vector<single_coeffs> MultiplySumOfCoeffs(std::vector<single_coeffs> first,
-    std::vector<single_coeffs> second) {
+std::vector<single_coeffs> ComputeCommutatorsUtil::MultiplySumOfCoeffs(
+    const std::vector<single_coeffs>& first,
+    const std::vector<single_coeffs>& second) {
   // result will carry result of multiplication
   std::vector<single_coeffs> result;
   for (const single_coeffs& first_term : first) {
@@ -87,6 +88,31 @@ std::vector<single_coeffs> MultiplySumOfCoeffs(std::vector<single_coeffs> first,
     }
   }
   return result;
+}
+
+bool ComputeCommutatorsUtil::TriviallyCommutes(const term& first_term,
+    const term& second_term, const term& third_term) {
+  // First check if B and C have indices in common
+  std::set<int> set_one(second_term.begin(), second_term.end());
+  std::set<int> set_two(third_term.begin(), third_term.end());
+  std::vector<int> intersection;
+  std::set_intersection(set_one.begin(), set_one.end(), set_two.begin(),
+      set_two.end(), std::back_inserter(intersection));
+  if (!intersection.empty()) {
+    return false;
+  }
+  intersection.clear();
+  // Now check if A and BC have indices in common
+  std::copy(third_term.begin(), third_term.end(), std::inserter(
+      set_one, set_one.end()));
+  std::set<int> set_three(first_term.begin(), first_term.end());
+  std::set_intersection(set_one.begin(), set_one.end(), set_three.begin(),
+      set_three.end(), std::back_inserter(intersection));
+  if (!intersection.empty()) {
+    return false;
+  } else {
+    return true;
+  }
 }
 
 void TermsToCoeffsMap::AddNormalForm(term curr_term,
@@ -147,7 +173,7 @@ void TermsToCoeffsMap::RemoveComplexConjugates() {
   }
 }
 
-bool TermsToCoeffsMap::HasTerm(term curr_term) {
+bool TermsToCoeffsMap::HasTerm(const term& curr_term) {
   if (terms_to_coefficients.find(curr_term) != terms_to_coefficients.end()) {
     return true;
   } else {
@@ -165,7 +191,7 @@ std::map<term, std::vector<single_coeffs> >::iterator TermsToCoeffsMap
   return terms_to_coefficients.end();
 }
 
-std::vector<single_coeffs> TermsToCoeffsMap::At(term key) {
+std::vector<single_coeffs> TermsToCoeffsMap::At(const term& key) {
   return terms_to_coefficients.at(key);
 }
 
