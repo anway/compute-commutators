@@ -88,7 +88,7 @@ void TermsToCoeffsMap::AddNormalForm(term curr_term,
     if (terms_to_coefficients.find(curr_term) == terms_to_coefficients.end()) {
       // Term not in map already.
       terms_to_coefficients[curr_term] = curr_coeff;
-    } else {  // Term already in map; just add coefficients.
+    } else {  // Term already in map; just add (sum) existing coefficients.
       terms_to_coefficients[curr_term].insert(
           terms_to_coefficients[curr_term].end(), curr_coeff.begin(),
           curr_coeff.end());

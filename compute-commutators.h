@@ -28,6 +28,8 @@ class ComputeCommutators {
   // Calculate the Trotter error using the terms arranged in the order from
   // InterleaveTerms, and with the complex conjugates added back in.
   void CalculateTrotterError();
+  // Helper for CalculateTrotterError to prepare A/B/C term, conjugate, coeff.
+  std::pair<term, std::vector<single_coeffs> > GetTermForTrotter(int index);
  private:
   int num_orbitals;
   TermsToCoeffsMap initial_terms_to_coefficients;
