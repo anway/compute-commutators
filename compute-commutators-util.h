@@ -42,8 +42,11 @@ class ComputeCommutatorsUtil {
       const std::vector<single_coeffs>& first,
       const std::vector<single_coeffs>& second); 
   // Check if double commutator [A, [B, C]] is trivially zero
-  bool TriviallyCommutes(const term& first_term, const term& second_term,
+  static bool TriviallyCommutes(const term& first_term, const term& second_term,
       const term& third_term);
+  // Helper to concatenate three terms (e.g., ABC)
+  static term ConcatenateThreeTerms(const term& first_term,
+      const term& second_term, const term& third_term);
 };
 
 // Wrapper class for terms_to_coeffs map

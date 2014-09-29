@@ -115,6 +115,15 @@ bool ComputeCommutatorsUtil::TriviallyCommutes(const term& first_term,
   }
 }
 
+term ComputeCommutatorsUtil::ConcatenateThreeTerms(const term& first_term,
+    const term& second_term, const term& third_term) {
+  term result;
+  result.insert(result.end(), first_term.begin(), first_term.end());
+  result.insert(result.end(), second_term.begin(), second_term.end());
+  result.insert(result.end(), third_term.begin(), third_term.end());
+  return result;
+}
+
 void TermsToCoeffsMap::AddNormalForm(term curr_term,
     std::vector<single_coeffs> curr_coeff) {
   for (std::vector<int>::iterator it = curr_term.begin(); it != curr_term.end();

@@ -1,7 +1,7 @@
 #include "compute-commutators.h"
 #include "compute-commutators-util.h"
 
-#include <time.h>
+#include <ctime>
 
 namespace compute_commutators {
 
@@ -155,8 +155,7 @@ void ComputeCommutators::CalculateTrotterError() {
   int one_percent = num_commutators / 100.0;
   printf("There are %d possible commutators.\n", num_commutators);
   int counter = 0;
-  clock_t time;
-  time = clock();
+  clock_t start = clock();
 
   // Loop over the possible combinations a <= b, c < b of
   // (1 / 12) * [A * (1 - delta(A, B)/2), [B, C]] = ...
@@ -192,7 +191,45 @@ void ComputeCommutators::CalculateTrotterError() {
         }
 
         // Compute commutators.
-        // for (term A :  
+        for (term A : A_terms) {
+          for (term B : B_terms) {
+            for (term C : C_terms) {
+              if (!compute_commutators_util::ComputeCommutatorsUtil
+                  ::TriviallyCommutes(A, B, C)) {
+                // ABC term
+                final_terms_to_coefficients.AddNormalForm(
+                    compute_commutators_util::ComputeCommutatorsUtil::
+                    ConcatenateThreeTerms(A, B, C), multiplied_coeffs);
+                // CBA term
+                final_terms_to_coefficients.AddNormalForm(
+                    compute_commutators_util::ComputeCommutatorsUtil::
+                    ConcatenateThreeTerms(C, B, A), multiplied_coeffs);
+                // Flip sign on coefficients for ACB and BCA terms.
+                for (auto it = multiplied_coeffs.begin();
+                    it != multiplied_coeffs.end(); ++it) {
+                  it->integer_multiplier *= -1;
+                }
+                // ACB term
+                final_terms_to_coefficients.AddNormalForm(
+                    compute_commutators_util::ComputeCommutatorsUtil::
+                    ConcatenateThreeTerms(A, C, B), multiplied_coeffs);
+                // BCA term
+                final_terms_to_coefficients.AddNormalForm(
+                    compute_commutators_util::ComputeCommutatorsUtil::
+                    ConcatenateThreeTerms(B, C, A), multiplied_coeffs);
+                // Report progress.
+                if (!counter % one_percent) {
+                  int percent_complete = counter / one_percent;
+                  int elapsed = double(clock() - start) / CLOCKS_PER_SEC;
+                  int rate = elapsed / percent_complete;
+                  int eta = rate * (100 - percent_complete);
+                  printf("Computation %d complete. Approximately %d minute(s)"
+                      "remaining\n", percent_complete, eta / 60);
+                }
+              }
+            }
+          }
+        }
       } 
     }
   } 
