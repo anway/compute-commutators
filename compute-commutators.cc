@@ -117,13 +117,15 @@ void ComputeCommutators::InterleaveTerms() {
   }
 
   if (verbose) {
-    printf("Order of terms in Trotter series:\n");
-    for (const auto& curr_term : initial_terms) {
-      compute_commutators_util::ComputeCommutatorsUtil::PrintIndices(curr_term);
-      printf(", ");
+    fprintf(stderr, "Order of terms in Trotter series:\n");
+    for (const auto& curr_term : interleaved_order) {
+      fprintf(stderr, "Term: ");
+      compute_commutators_util::ComputeCommutatorsUtil::PrintIndices(stderr,
+          curr_term);
+      fprintf(stderr, "\nCoeff: ");
       compute_commutators_util::ComputeCommutatorsUtil::PrintSumOfCoeffs(
-          initial_terms_to_coefficients.At(curr_term));
-      printf("\n");
+          stderr, initial_terms_to_coefficients.At(curr_term));
+      fprintf(stderr, "\n");
     }
   }
 }
@@ -153,7 +155,7 @@ void ComputeCommutators::CalculateTrotterError() {
     num_commutators += i * (i + 1);  
   }
   int one_percent = num_commutators / 100.0;
-  printf("There are %d possible commutators.\n", num_commutators);
+  fprintf(stderr, "There are %d possible commutators.\n", num_commutators);
   int counter = 0;
   clock_t start = clock();
 
@@ -178,16 +180,24 @@ void ComputeCommutators::CalculateTrotterError() {
         const auto& C_term_coeff = GetTermForTrotter(c);
         std::vector<term> C_terms = C_term_coeff.first;
         std::vector<single_coeffs> C_coeff = C_term_coeff.second;
+       
+        // Increment counter.
+        counter += 1;
 
         // Calculate the coefficient (multiplying the 3 terms). 
         std::vector<single_coeffs> multiplied_coeffs = compute_commutators_util
             ::ComputeCommutatorsUtil::MultiplySumOfCoeffs(A_coeff, B_coeff);
         multiplied_coeffs = compute_commutators_util::ComputeCommutatorsUtil
             ::MultiplySumOfCoeffs(multiplied_coeffs, C_coeff);
-        int scale = (a == b) ? 24.0 : 12.0;
-        for (auto it = multiplied_coeffs.begin(); it != multiplied_coeffs.end();
-            ++it) {
-          it->integer_multiplier /= scale;
+        // To handle the scale (each coefficient needs to be multipled by 1 / 24
+        // if a == b, or 1 / 12 if not): we multiply the coefficient by 2 if
+        // a is not equal to b, and divide everything by 24 in the very end.
+        // This allows us to keep coefficients as ints. 
+        if (a == b) {
+          for (auto it = multiplied_coeffs.begin();
+              it != multiplied_coeffs.end(); ++it) {
+            it->integer_multiplier *= 2;
+          }
         }
 
         // Compute commutators.
@@ -217,18 +227,24 @@ void ComputeCommutators::CalculateTrotterError() {
                 final_terms_to_coefficients.AddNormalForm(
                     compute_commutators_util::ComputeCommutatorsUtil::
                     ConcatenateThreeTerms(B, C, A), multiplied_coeffs);
-                // Report progress.
-                if (!counter % one_percent) {
-                  int percent_complete = counter / one_percent;
-                  int elapsed = double(clock() - start) / CLOCKS_PER_SEC;
-                  int rate = elapsed / percent_complete;
-                  int eta = rate * (100 - percent_complete);
-                  printf("Computation %d complete. Approximately %d minute(s)"
-                      "remaining\n", percent_complete, eta / 60);
-                }
               }
             }
           }
+        }
+      
+        // Report progress.
+        if (counter % one_percent == 0) {
+          int percent_complete = counter / one_percent;
+          int elapsed = double(clock() - start) / CLOCKS_PER_SEC; 
+          int rate = elapsed / percent_complete; 
+          int eta = rate * (100 - percent_complete); 
+          // Get current date and time.
+          time_t rawtime;
+          time(&rawtime);
+          struct tm *timeinfo = localtime(&rawtime);
+          fprintf(stderr, "%sComputation %d%% complete. Approximately "
+              "%d minute(s) remaining.\n", asctime(timeinfo),
+              percent_complete, eta / 60);
         }
       } 
     }

@@ -30,24 +30,24 @@ term ComputeCommutatorsUtil::GetConjugate(const term& curr_term) {
   return conjugate;
 }
 
-void ComputeCommutatorsUtil::PrintIndices(const term& curr_term) {
-  printf("[ ");
+void ComputeCommutatorsUtil::PrintIndices(FILE* output, const term& curr_term) {
+  fprintf(output, "[ ");
   for (int index : curr_term) {
-    printf("%d ", index);
+    fprintf(output, "%d ", index);
   }
-  printf("] ");
+  fprintf(output, "] ");
 }
 
-void ComputeCommutatorsUtil::PrintSumOfCoeffs(const std::vector<single_coeffs>&
-    sum_of_coeffs) {
+void ComputeCommutatorsUtil::PrintSumOfCoeffs(FILE* output,
+    const std::vector<single_coeffs>& sum_of_coeffs) {
   for (auto it = sum_of_coeffs.begin(); it != sum_of_coeffs.end();
       ++it) {
-    printf("%d * ", (*it).integer_multiplier);
+    fprintf(output, "%d * ", (*it).integer_multiplier);
     for (const auto& prod_of_terms : (*it).product_of_coeffs) {
-      PrintIndices(prod_of_terms);
+      PrintIndices(output, prod_of_terms);
     }  
     if (it != sum_of_coeffs.end() - 1) {
-      printf(" + ");
+      fprintf(output, " + ");
     }
   }
 }

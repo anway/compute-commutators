@@ -33,9 +33,10 @@ class ComputeCommutatorsUtil {
   // is its own conjugate.
   static term GetConjugate(const term& curr_term);
   // Print a vector of ints
-  static void PrintIndices(const term& curr_term);
+  static void PrintIndices(FILE* output, const term& curr_term);
   // Print a vector of single_coeffs
-  static void PrintSumOfCoeffs(const std::vector<single_coeffs>& sum_of_coeffs);
+  static void PrintSumOfCoeffs(FILE* output,
+      const std::vector<single_coeffs>& sum_of_coeffs);
   // Multiply two coefficient vectors term by term to get a new coefficient
   // vector.
   static std::vector<single_coeffs> MultiplySumOfCoeffs(

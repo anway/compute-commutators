@@ -31,6 +31,7 @@ class ComputeCommutators {
   // Helper for CalculateTrotterError to return term, its conjugate, its coeff.
   std::pair<std::vector<term>, std::vector<single_coeffs> > GetTermForTrotter(
       const int& index);
+  void PrintFinalResults(FILE* output);
  private:
   int num_orbitals;
   TermsToCoeffsMap initial_terms_to_coefficients;
