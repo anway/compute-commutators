@@ -30,3 +30,6 @@ compute-commutators
 
 # swp files
 *.swp
+
+# txt files
+*.txt
