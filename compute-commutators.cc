@@ -151,7 +151,7 @@ std::pair<std::vector<term>, std::vector<single_coeffs> > ComputeCommutators
 
 void ComputeCommutators::CalculateTrotterError() {
   int num_commutators = 0, num_terms = interleaved_order.size();
-  for (int i = 1; i < num_terms; ++i) {
+  for (int i = 0; i < num_terms; ++i) {
     num_commutators += i * (i + 1);  
   }
   int one_percent = num_commutators / 100.0;
@@ -233,7 +233,7 @@ void ComputeCommutators::CalculateTrotterError() {
         }
       
         // Report progress.
-        if (counter % one_percent == 0) {
+        if (one_percent != 0 && counter % one_percent == 0) {
           int percent_complete = counter / one_percent;
           int elapsed = double(clock() - start) / CLOCKS_PER_SEC; 
           int rate = elapsed / percent_complete; 

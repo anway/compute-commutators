@@ -142,7 +142,9 @@ void TermsToCoeffsMap::AddNormalForm(term curr_term,
           term exchange_term;
           exchange_term.insert(exchange_term.end(), curr_term.begin(), rit - 1);
           exchange_term.insert(exchange_term.end(), rit + 1, curr_term.end());
-          AddNormalForm(exchange_term, curr_coeff);
+          if (!exchange_term.empty()) {
+            AddNormalForm(exchange_term, curr_coeff);
+          }
         }
         // Flip the sign of the coefficient because we swapped.
         for (single_coeffs one_coeff_term : curr_coeff) {
@@ -161,9 +163,27 @@ void TermsToCoeffsMap::AddNormalForm(term curr_term,
       // Term not in map already.
       terms_to_coefficients[curr_term] = curr_coeff;
     } else {  // Term already in map; just add (sum) existing coefficients.
-      terms_to_coefficients[curr_term].insert(
-          terms_to_coefficients[curr_term].end(), curr_coeff.begin(),
-          curr_coeff.end());
+      for (const auto& current_coeff : curr_coeff) {
+        if (current_coeff.integer_multiplier != 0) {
+          std::vector<single_coeffs>::iterator it;
+          // Check if we're just combining existing terms or adding new term.
+          for (it = terms_to_coefficients[curr_term].begin();
+              it != terms_to_coefficients[curr_term].end(); ++it) {
+            if (it->product_of_coeffs == current_coeff.product_of_coeffs) {
+              break;
+            }
+          }
+          // If not, push new term and coefficient.
+          if (it == terms_to_coefficients[curr_term].end()) {
+            terms_to_coefficients[curr_term].push_back(current_coeff);
+          } else {
+            it->integer_multiplier += current_coeff.integer_multiplier;
+            if (it->integer_multiplier == 0) {
+              terms_to_coefficients[curr_term].erase(it);
+            }
+          }
+          }
+      }
     }
   }
 }
