@@ -251,4 +251,16 @@ void ComputeCommutators::CalculateTrotterError() {
   } 
 }
 
+void ComputeCommutators::PrintFinalResults(FILE* output) {
+  for (auto it = final_terms_to_coefficients.Begin();
+      it != final_terms_to_coefficients.End(); ++it) {
+    compute_commutators_util::ComputeCommutatorsUtil::PrintIndices(output,
+        it->first);
+    fprintf(output, "\n");
+    compute_commutators_util::ComputeCommutatorsUtil::PrintSumOfCoeffs(output,
+        it->second);
+    fprintf(output, "\n\n");
+  }
+}
+
 }  // namespace compute-commutators
