@@ -28,7 +28,7 @@ class ComputeCommutatorsUtil {
   // list of indices [p,-q] or [p,q,-r,-s]) since we have not done any swaps
   // or multiplications yet at this point.
   static std::vector<single_coeffs> GetInitialSumCoeffs(
-      const std::vector<int>& curr_coeff_term);
+      std::vector<int> curr_coeff_term);
   // Returns the conjugate of a term in normal order, or an empty list is a term
   // is its own conjugate.
   static term GetConjugate(const term& curr_term);

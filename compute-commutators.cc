@@ -25,17 +25,20 @@ void ComputeCommutators::AddInitialTerms() {
 
       for (int r = 1; r <= num_orbitals; ++r) {
         for (int s = 1; s <= num_orbitals; ++s) {
-          // pqrs term.
-          term curr_term;
-          curr_term.push_back(p);
-          curr_term.push_back(q);
-          curr_term.push_back(-1 * r);
-          curr_term.push_back(-1 * s);
-          term curr_coeff_term(curr_term);
+          // Only add term if it preserves spin parity
+          if ((r % 2) + (s % 2) == (p % 2) + (q % 2)) {
+            // pqrs term.
+            term curr_term;
+            curr_term.push_back(p);
+            curr_term.push_back(q);
+            curr_term.push_back(-1 * r);
+            curr_term.push_back(-1 * s);
+            term curr_coeff_term(curr_term);
 
-          initial_terms_to_coefficients.AddNormalForm(curr_term,
-              compute_commutators_util::ComputeCommutatorsUtil
-              ::GetInitialSumCoeffs(curr_coeff_term));
+            initial_terms_to_coefficients.AddNormalForm(curr_term,
+                compute_commutators_util::ComputeCommutatorsUtil
+                ::GetInitialSumCoeffs(curr_coeff_term));
+          }
         }
       }
     }
