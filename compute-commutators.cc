@@ -49,6 +49,7 @@ void ComputeCommutators::AddInitialTerms() {
       it != initial_terms_to_coefficients.End(); ++it) {
     initial_terms.insert(it->first);
   }
+  fprintf(stderr, "Initial terms size: %lu\n", initial_terms.size());
 }
 
 void ComputeCommutators::AddTermToInterleavedOrder(const term& curr_term) {
@@ -104,7 +105,7 @@ void ComputeCommutators::InterleaveTerms() {
   }
   // Now add pqrs terms.
   for (int p = 1; p <= num_orbitals; ++p) {
-    for (int q = 1; q <= num_orbitals; ++q) {
+    for (int q = 1; q <= p; ++q) {
       for (int r = 1; r <= num_orbitals; ++r) {
         for (int s = r; s <= num_orbitals; ++s) {
           term curr_term;
@@ -131,6 +132,8 @@ void ComputeCommutators::InterleaveTerms() {
       fprintf(stderr, "\n");
     }
   }
+  fprintf(stderr, "Number of terms in interleaved order: %lu\n",
+      interleaved_order.size());
 }
 
 std::pair<std::vector<term>, std::vector<single_coeffs> > ComputeCommutators
