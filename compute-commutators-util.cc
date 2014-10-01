@@ -42,8 +42,8 @@ std::vector<single_coeffs> ComputeCommutatorsUtil::GetInitialSumCoeffs(
 
 term ComputeCommutatorsUtil::GetConjugate(const term& curr_term) {
   term conjugate;
-  for (int index : curr_term) {
-    conjugate.push_back(-1 * index);
+  for (auto rit = curr_term.rbegin(); rit != curr_term.rend(); ++rit) {
+    conjugate.push_back(-1 * (*rit));
   }
   if (conjugate == curr_term) {
     // Return nothing if a term is equal to its own conjugate.
