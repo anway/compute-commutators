@@ -5,8 +5,6 @@
 
 namespace compute_commutators {
 
-//typedef compute_commutators_util::single_coeff single_coeff;
-
 ComputeCommutators::ComputeCommutators(int n, bool verbose) : num_orbitals(n),
     verbose(verbose) {} 
 

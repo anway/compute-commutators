@@ -13,13 +13,13 @@ namespace compute_commutators_util {
 // operator.
 typedef std::vector<int> term;
 
-// single_coeff represents a term of the form integer_number * h_1 * h_2 * ...
+// single_coeff represents a term of the form h_1 * h_2 * ...
 // where the h_i are symbolic representations of h_{pq}, h_{pqrs}
 // We will then represent a sum of single_coeff with a map of single_coeffs
 // where each single_coeff maps to an integer multiplier in front of it
 typedef std::multiset<std::vector<int> > single_coeff;
 
-// sum of single_coeff
+// sum of single_coeff is of the form # * h_1 * h_2... + # * h_1 * h_2 ...
 typedef std::map<single_coeff, int> all_coeff;
 
 class ComputeCommutatorsUtil {
@@ -27,14 +27,14 @@ class ComputeCommutatorsUtil {
   // A helper that returns the coefficient corresponding to the initial term.
   // The coefficient should have the same form as the initial term (i.e., same
   // list of indices [p,-q] or [p,q,-r,-s]) since we have not done any swaps
-  // or multiplications yet at this point.
+  // or multiplications yet at this point, and it should have multiplier 1.
   static all_coeff GetInitialSumCoeffs(term curr_coeff_term);
   // Returns the conjugate of a term in normal order, or an empty list is a term
   // is its own conjugate.
   static term GetConjugate(const term& curr_term);
-  // Print a vector of ints
+  // Print a vector of ints (a term).
   static void PrintIndices(FILE* output, const term& curr_term);
-  // Print a vector of single_coeffs
+  // Print a sum of single_coeffs ( sum of # * h_1 * h_2...)
   static void PrintSumOfCoeffs(FILE* output, const all_coeff& sum_of_coeffs);
   // Multiply two coefficient maps term by term to get a new coefficient
   // map.
