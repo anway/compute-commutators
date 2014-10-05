@@ -10,7 +10,7 @@
 namespace compute_commutators {
 
 typedef std::vector<int> term;
-typedef compute_commutators_util::single_coeffs single_coeffs;
+typedef compute_commutators_util::all_coeff all_coeff;
 typedef compute_commutators_util::TermsToCoeffsMap TermsToCoeffsMap;
 
 class ComputeCommutators {
@@ -29,12 +29,14 @@ class ComputeCommutators {
   // InterleaveTerms, and with the complex conjugates added back in.
   void CalculateTrotterError();
   // Helper for CalculateTrotterError to return term, its conjugate, its coeff.
-  std::pair<std::vector<term>, std::vector<single_coeffs> > GetTermForTrotter(
+  std::pair<std::vector<term>, all_coeff > GetTermForTrotter(
       const int& index);
   void PrintFinalResults(FILE* output);
  private:
   int num_orbitals;
   TermsToCoeffsMap initial_terms_to_coefficients;
+  // initial_terms is an intermediate set we will use to construct
+  // interleaved_order
   std::set<term> initial_terms;
   std::vector<term> interleaved_order;
   TermsToCoeffsMap final_terms_to_coefficients;
