@@ -33,3 +33,7 @@ compute-commutators
 
 # txt files
 *.txt
+
+#.tar, .gz files
+*.tar
+*.gz
