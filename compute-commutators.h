@@ -10,7 +10,8 @@
 namespace compute_commutators {
 
 typedef std::vector<int> term;
-typedef compute_commutators_util::single_coeffs single_coeffs;
+typedef compute_commutators_util::single_coeff single_coeff;
+typedef compute_commutators_util::all_coeff all_coeff;
 typedef compute_commutators_util::TermsToCoeffsMap TermsToCoeffsMap;
 
 class ComputeCommutators {
@@ -27,8 +28,7 @@ class ComputeCommutators {
   // The coefficient should have the same form as the initial term (i.e., same
   // list of indices [p,-q] or [p,q,-r,-s]) since we have not done any swaps
   // or multiplications yet at this point.
-  std::vector<single_coeffs> GetInitialSumCoeffs(
-      std::vector<int> curr_coeff_term);
+  all_coeff GetInitialSumCoeffs(std::vector<int> curr_coeff_term);
   // Helper for GetInitalSumCoeffs that checks if coefficient term has a
   // symmetrical permutation already seen before. Returns corresponding pointer.
   std::set<term>::iterator InitialCoeffSeen(const int& one, const int& two,
@@ -41,12 +41,14 @@ class ComputeCommutators {
   // InterleaveTerms, and with the complex conjugates added back in.
   void CalculateTrotterError();
   // Helper for CalculateTrotterError to return term, its conjugate, its coeff.
-  std::pair<std::vector<term>, std::vector<single_coeffs> > GetTermForTrotter(
+  std::pair<std::vector<term>, all_coeff > GetTermForTrotter(
       const int& index);
   void PrintFinalResults(FILE* output);
  private:
   int num_orbitals;
   TermsToCoeffsMap initial_terms_to_coefficients;
+  // initial_terms is an intermediate set we will use to construct
+  // interleaved_order
   std::set<term> initial_terms;
   std::set<term> unique_coeffs;
   std::vector<term> interleaved_order;

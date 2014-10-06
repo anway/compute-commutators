@@ -13,29 +13,28 @@ namespace compute_commutators_util {
 // operator.
 typedef std::vector<int> term;
 
-// single_coeff represents a term of the form integer_number * h_1 * h_2 * ...
+// single_coeff represents a term of the form h_1 * h_2 * ...
 // where the h_i are symbolic representations of h_{pq}, h_{pqrs}
-// We will then represent a sum of single_coeff with a vector of single_coeffs
-struct single_coeffs {
-  int integer_multiplier = 1;
-  std::multiset<std::vector<int> > product_of_coeffs;
-};
+// We will then represent a sum of single_coeff with a map of single_coeffs
+// where each single_coeff maps to an integer multiplier in front of it
+typedef std::multiset<std::vector<int> > single_coeff;
+
+// sum of single_coeff is of the form # * h_1 * h_2... + # * h_1 * h_2 ...
+typedef std::map<single_coeff, int> all_coeff;
 
 class ComputeCommutatorsUtil {
  public:
   // Returns the conjugate of a term in normal order, or an empty list is a term
   // is its own conjugate.
   static term GetConjugate(const term& curr_term);
-  // Print a vector of ints
+  // Print a vector of ints (a term).
   static void PrintIndices(FILE* output, const term& curr_term);
-  // Print a vector of single_coeffs
-  static void PrintSumOfCoeffs(FILE* output,
-      const std::vector<single_coeffs>& sum_of_coeffs);
-  // Multiply two coefficient vectors term by term to get a new coefficient
-  // vector.
-  static std::vector<single_coeffs> MultiplySumOfCoeffs(
-      const std::vector<single_coeffs>& first,
-      const std::vector<single_coeffs>& second); 
+  // Print a sum of single_coeffs ( sum of # * h_1 * h_2...)
+  static void PrintSumOfCoeffs(FILE* output, const all_coeff& sum_of_coeffs);
+  // Multiply two coefficient maps term by term to get a new coefficient
+  // map.
+  static all_coeff MultiplySumOfCoeffs(const all_coeff& first,
+      const all_coeff& second); 
   // Check if double commutator [A, [B, C]] is trivially zero
   static bool TriviallyCommutes(const term& first_term, const term& second_term,
       const term& third_term);
@@ -49,18 +48,18 @@ class TermsToCoeffsMap {
  public:
   // Adds a term and coefficient to the map, with the term in normal order
   // after necessary swapping.
-  void AddNormalForm(term curr_term, std::vector<single_coeffs> curr_coeff);
+  void AddNormalForm(term curr_term, all_coeff curr_coeff);
   // Removes complex conjugates from the map.
   void RemoveComplexConjugates();
   bool HasTerm(const term& curr_term);
   // Return iterator to start of map.
-  std::map<term, std::vector<single_coeffs> >::iterator Begin();
+  std::map<term, all_coeff>::iterator Begin();
   // Return iterator to end of map.
-  std::map<term, std::vector<single_coeffs> >::iterator End();
+  std::map<term, all_coeff>::iterator End();
   // Returns value corresponding to key, or throws an exception if no value.
-  std::vector<single_coeffs> At(const term& key);
+  all_coeff At(const term& key);
  private:
-  std::map<term, std::vector<single_coeffs> > terms_to_coefficients;
+  std::map<term, all_coeff> terms_to_coefficients;
 };
 
 }  // namespace compute_commutators_util

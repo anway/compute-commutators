@@ -2,7 +2,7 @@
 
 namespace compute_commutators_util {
 
-typedef compute_commutators_util::single_coeffs single_coeffs;
+typedef compute_commutators_util::single_coeff single_coeff;
 
 term ComputeCommutatorsUtil::GetConjugate(const term& curr_term) {
   term conjugate;
@@ -25,51 +25,41 @@ void ComputeCommutatorsUtil::PrintIndices(FILE* output, const term& curr_term) {
 }
 
 void ComputeCommutatorsUtil::PrintSumOfCoeffs(FILE* output,
-    const std::vector<single_coeffs>& sum_of_coeffs) {
+    const all_coeff& sum_of_coeffs) {
   for (auto it = sum_of_coeffs.begin(); it != sum_of_coeffs.end();
       ++it) {
-    fprintf(output, "%d * ", (*it).integer_multiplier);
-    for (const auto& prod_of_terms : (*it).product_of_coeffs) {
-      PrintIndices(output, prod_of_terms);
-    }  
-    if (it != sum_of_coeffs.end() - 1) {
+    fprintf(output, "%d * ", it->second);
+    for (const auto& one_term : it->first) {
+      PrintIndices(output, one_term);
+    } 
+    if (it != --sum_of_coeffs.end()) {
       fprintf(output, " + ");
     }
   }
 }
 
-std::vector<single_coeffs> ComputeCommutatorsUtil::MultiplySumOfCoeffs(
-    const std::vector<single_coeffs>& first,
-    const std::vector<single_coeffs>& second) {
+all_coeff ComputeCommutatorsUtil::MultiplySumOfCoeffs(
+    const all_coeff& first, const all_coeff& second) {
   // result will carry result of multiplication
-  std::vector<single_coeffs> result;
-  for (const single_coeffs& first_term : first) {
-    for (const single_coeffs& second_term : second) {
+  all_coeff result;
+  for (auto first_term_it = first.begin(); first_term_it != first.end();
+      ++first_term_it) {
+    for (auto second_term_it = second.begin(); second_term_it != second.end();
+        ++second_term_it) {
+      const auto& first_term = first_term_it->first;
+      const auto& second_term = second_term_it->first;
       // first multiply just the symbolic terms (without coefficient)
       std::multiset<std::vector<int> > new_term;
-      new_term.insert(first_term.product_of_coeffs.begin(),
-          first_term.product_of_coeffs.end());
-      new_term.insert(second_term.product_of_coeffs.begin(),
-          second_term.product_of_coeffs.end());    
+      new_term.insert(first_term.begin(), first_term.end());
+      new_term.insert(second_term.begin(), second_term.end());    
       // check if resulting symbolic term has already been seen in this
       // multiplication
-      std::vector<single_coeffs>::iterator it_result;
-      for (it_result = result.begin(); it_result != result.end();
-          ++it_result) {
-        if (it_result->product_of_coeffs == new_term) {
-          break;
-        }
-      }
+      auto it_result = result.find(new_term);
       // if not, push new symbolic term and coefficient
       if (it_result == result.end()) {
-        single_coeffs new_term_result;
-        new_term_result.integer_multiplier = first_term.integer_multiplier *
-            second_term.integer_multiplier;
-        new_term_result.product_of_coeffs = new_term;
-        result.push_back(new_term_result);
+        result[new_term] = first_term_it->second * second_term_it->second;
       } else {  // if so, just add to coefficient of existing term
-        it_result->integer_multiplier += first_term.integer_multiplier *
-            second_term.integer_multiplier; 
+        it_result->second += first_term_it->second * second_term_it->second;  
       }
     }
   }
@@ -110,8 +100,7 @@ term ComputeCommutatorsUtil::ConcatenateThreeTerms(const term& first_term,
   return result;
 }
 
-void TermsToCoeffsMap::AddNormalForm(term curr_term,
-    std::vector<single_coeffs> curr_coeff) {
+void TermsToCoeffsMap::AddNormalForm(term curr_term, all_coeff curr_coeff) {
   for (std::vector<int>::iterator it = curr_term.begin(); it != curr_term.end();
       ++it) {
     for (std::vector<int>::iterator rit = it; rit != curr_term.begin();
@@ -133,8 +122,9 @@ void TermsToCoeffsMap::AddNormalForm(term curr_term,
           }
         }
         // Flip the sign of the coefficient because we swapped.
-        for (auto it = curr_coeff.begin(); it != curr_coeff.end(); ++it) {
-          it->integer_multiplier *= -1;
+        for (auto it_coeff = curr_coeff.begin(); it_coeff != curr_coeff.end();
+           ++it_coeff) {
+          it_coeff->second *= -1;
         }
       } else {  // No more terms out of order, so stop swapping.
         break;
@@ -149,26 +139,25 @@ void TermsToCoeffsMap::AddNormalForm(term curr_term,
       // Term not in map already.
       terms_to_coefficients[curr_term] = curr_coeff;
     } else {  // Term already in map; just add (sum) existing coefficients.
-      for (const auto& current_coeff : curr_coeff) {
-        if (current_coeff.integer_multiplier != 0) {
-          std::vector<single_coeffs>::iterator it;
+      for (auto it_coeff = curr_coeff.begin(); it_coeff != curr_coeff.end();
+         ++it_coeff) {
+        // If the multiplier is 0, we can ignore it
+        if (it_coeff->second != 0) {
           // Check if we're just combining existing terms or adding new term.
-          for (it = terms_to_coefficients[curr_term].begin();
-              it != terms_to_coefficients[curr_term].end(); ++it) {
-            if (it->product_of_coeffs == current_coeff.product_of_coeffs) {
-              break;
-            }
-          }
+          auto full_map_it = terms_to_coefficients[curr_term].find(
+              it_coeff->first);
           // If not, push new term and coefficient.
-          if (it == terms_to_coefficients[curr_term].end()) {
-            terms_to_coefficients[curr_term].push_back(current_coeff);
+          if (full_map_it == terms_to_coefficients[curr_term].end()) {
+            (terms_to_coefficients[curr_term])[it_coeff->first] =
+                it_coeff->second; 
           } else {
-            it->integer_multiplier += current_coeff.integer_multiplier;
-            if (it->integer_multiplier == 0) {
-              terms_to_coefficients[curr_term].erase(it);
+            // Add integer multipliers if term already in map.
+            full_map_it->second += it_coeff->second;
+            if (full_map_it->second == 0) {
+              terms_to_coefficients[curr_term].erase(full_map_it);
             }
           }
-          }
+        }
       }
     }
   }
@@ -196,17 +185,17 @@ bool TermsToCoeffsMap::HasTerm(const term& curr_term) {
   }
 }
 
-std::map<term, std::vector<single_coeffs> >::iterator TermsToCoeffsMap
+std::map<term, all_coeff>::iterator TermsToCoeffsMap
     ::Begin() {
   return terms_to_coefficients.begin();
 }
 
-std::map<term, std::vector<single_coeffs> >::iterator TermsToCoeffsMap
+std::map<term, all_coeff>::iterator TermsToCoeffsMap
     ::End() {
   return terms_to_coefficients.end();
 }
 
-std::vector<single_coeffs> TermsToCoeffsMap::At(const term& key) {
+all_coeff TermsToCoeffsMap::At(const term& key) {
   return terms_to_coefficients.at(key);
 }
 

@@ -5,8 +5,6 @@
 
 namespace compute_commutators {
 
-typedef compute_commutators_util::single_coeffs single_coeffs;
-
 ComputeCommutators::ComputeCommutators(int n, bool verbose) : num_orbitals(n),
     verbose(verbose) {} 
 
@@ -20,12 +18,12 @@ std::set<term>::iterator ComputeCommutators::InitialCoeffSeen(const int& one,
   return unique_coeffs.find(permutation);
 }
 
-std::vector<single_coeffs> ComputeCommutators::GetInitialSumCoeffs(
+all_coeff ComputeCommutators::GetInitialSumCoeffs(
     std::vector<int> curr_coeff_term) {
   // Return a sum of single_coeffs that has just one coeff in the sum (the
   // one corresponding to the initial term).
-  single_coeffs curr_coeff;
-  std::multiset<std::vector<int> > prod_of_coeffs;
+  single_coeff one_coeff;
+  all_coeff sum_coeffs_map;
   // If a pq term, check for pq = qp symmetry. If a pqrs term, check for
   // pqrs = sqrp = prqs = srqp = qpsr = rqps = qspr = rspq symmetry 
   // (We use the convention h_{pqrs}[p,q,-r,-s])
@@ -77,12 +75,12 @@ std::vector<single_coeffs> ComputeCommutators::GetInitialSumCoeffs(
       unique_coeffs.insert(curr_coeff_term);
     }
   }
-  prod_of_coeffs.insert(curr_coeff_term);
-  curr_coeff.product_of_coeffs = prod_of_coeffs;
-  std::vector<single_coeffs> sum_of_coeffs;
-  sum_of_coeffs.push_back(curr_coeff);
+  // Just one term in product.
+  one_coeff.insert(curr_coeff_term);
+  // Insert one coefficient with multiplier 1 into map.
+  sum_coeffs_map[one_coeff] = 1;
 
-  return sum_of_coeffs;
+  return sum_coeffs_map;
 }
 
 void ComputeCommutators::AddInitialTerms() {
@@ -140,7 +138,7 @@ void ComputeCommutators::AddTermToInterleavedOrder(const term& curr_term) {
     auto it = initial_terms.find(curr_term);
     if (it != initial_terms.end()) { 
       interleaved_order.push_back(curr_term);
-      initial_terms.erase(initial_terms.find(curr_term));
+      initial_terms.erase(it);
     }
   }      
 }
@@ -219,13 +217,12 @@ void ComputeCommutators::InterleaveTerms() {
       interleaved_order.size());
 }
 
-std::pair<std::vector<term>, std::vector<single_coeffs> > ComputeCommutators
+std::pair<std::vector<term>, all_coeff> ComputeCommutators
     ::GetTermForTrotter(const int& index) {
   term curr_term = interleaved_order[index];
   term curr_conjugate = compute_commutators_util::ComputeCommutatorsUtil
       ::GetConjugate(curr_term);
-  std::vector<single_coeffs> curr_coeff =
-      initial_terms_to_coefficients.At(curr_term);
+  all_coeff curr_coeff = initial_terms_to_coefficients.At(curr_term);
   std::vector<term> term_and_conjugate;
   if (!curr_conjugate.empty()) {
     // return both term and conjugate if conjugate and term differ
@@ -256,25 +253,25 @@ void ComputeCommutators::CalculateTrotterError() {
   for (int b = 0; b < num_terms; ++b) {
     const auto& B_term_coeff = GetTermForTrotter(b);
     std::vector<term> B_terms = B_term_coeff.first;
-    std::vector<single_coeffs> B_coeff = B_term_coeff.second;
+    all_coeff B_coeff = B_term_coeff.second;
 
     // Loop over A.
     for (int a = 0; a <= b; ++a) {
       const auto& A_term_coeff = GetTermForTrotter(a);
       std::vector<term> A_terms = A_term_coeff.first;
-      std::vector<single_coeffs> A_coeff = A_term_coeff.second;
+      all_coeff A_coeff = A_term_coeff.second;
 
       // Loop over C.
       for (int c = 0; c < b; ++c) {
         const auto& C_term_coeff = GetTermForTrotter(c);
         std::vector<term> C_terms = C_term_coeff.first;
-        std::vector<single_coeffs> C_coeff = C_term_coeff.second;
+        all_coeff C_coeff = C_term_coeff.second;
        
         // Increment counter.
         counter += 1;
 
         // Calculate the coefficient (multiplying the 3 terms). 
-        std::vector<single_coeffs> multiplied_coeffs = compute_commutators_util
+        all_coeff multiplied_coeffs = compute_commutators_util
             ::ComputeCommutatorsUtil::MultiplySumOfCoeffs(A_coeff, B_coeff);
         multiplied_coeffs = compute_commutators_util::ComputeCommutatorsUtil
             ::MultiplySumOfCoeffs(multiplied_coeffs, C_coeff);
@@ -285,14 +282,14 @@ void ComputeCommutators::CalculateTrotterError() {
         if (a == b) {
           for (auto it = multiplied_coeffs.begin();
               it != multiplied_coeffs.end(); ++it) {
-            it->integer_multiplier *= 2;
+            it->second *= 2;
           }
         }
 
         // Compute commutators.
-        for (term A : A_terms) {
-          for (term B : B_terms) {
-            for (term C : C_terms) {
+        for (const term& A : A_terms) {
+          for (const term& B : B_terms) {
+            for (const term& C : C_terms) {
               if (!compute_commutators_util::ComputeCommutatorsUtil
                   ::TriviallyCommutes(A, B, C)) {
                 // ABC term
@@ -306,7 +303,7 @@ void ComputeCommutators::CalculateTrotterError() {
                 // Flip sign on coefficients for ACB and BCA terms.
                 for (auto it = multiplied_coeffs.begin();
                     it != multiplied_coeffs.end(); ++it) {
-                  it->integer_multiplier *= -1;
+                  it->second *= -1;
                 }
                 // ACB term
                 final_terms_to_coefficients.AddNormalForm(
