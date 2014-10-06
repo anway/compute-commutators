@@ -23,12 +23,6 @@ struct single_coeffs {
 
 class ComputeCommutatorsUtil {
  public:
-  // A helper that returns the coefficient corresponding to the initial term.
-  // The coefficient should have the same form as the initial term (i.e., same
-  // list of indices [p,-q] or [p,q,-r,-s]) since we have not done any swaps
-  // or multiplications yet at this point.
-  static std::vector<single_coeffs> GetInitialSumCoeffs(
-      std::vector<int> curr_coeff_term);
   // Returns the conjugate of a term in normal order, or an empty list is a term
   // is its own conjugate.
   static term GetConjugate(const term& curr_term);

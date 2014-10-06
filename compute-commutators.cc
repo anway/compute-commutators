@@ -10,6 +10,81 @@ typedef compute_commutators_util::single_coeffs single_coeffs;
 ComputeCommutators::ComputeCommutators(int n, bool verbose) : num_orbitals(n),
     verbose(verbose) {} 
 
+std::set<term>::iterator ComputeCommutators::InitialCoeffSeen(const int& one,
+    const int& two, const int& three, const int& four) {
+  term permutation;
+  permutation.push_back(one);
+  permutation.push_back(two);
+  permutation.push_back(three);
+  permutation.push_back(four);
+  return unique_coeffs.find(permutation);
+}
+
+std::vector<single_coeffs> ComputeCommutators::GetInitialSumCoeffs(
+    std::vector<int> curr_coeff_term) {
+  // Return a sum of single_coeffs that has just one coeff in the sum (the
+  // one corresponding to the initial term).
+  single_coeffs curr_coeff;
+  std::multiset<std::vector<int> > prod_of_coeffs;
+  // If a pq term, check for pq = qp symmetry. If a pqrs term, check for
+  // pqrs = sqrp = prqs = srqp = qpsr = rqps = qspr = rspq symmetry 
+  // (We use the convention h_{pqrs}[p,q,-r,-s])
+  if (curr_coeff_term.size() == 2) {
+    // swap so that we consistently have [p, q] with p < q
+    std::sort(curr_coeff_term.begin(), curr_coeff_term.end());
+  } else if (curr_coeff_term.size() == 4) {
+    // Check if 7 permutations already seen.
+    // First check sqrp.
+    std::set<term>::iterator seen =
+        InitialCoeffSeen(curr_coeff_term[3], curr_coeff_term[1],
+          curr_coeff_term[2], curr_coeff_term[0]);
+    if (seen  == unique_coeffs.end()) { 
+      // Now check prqs.
+      seen = InitialCoeffSeen(curr_coeff_term[0], curr_coeff_term[2],
+          curr_coeff_term[1], curr_coeff_term[3]);
+      if (seen  == unique_coeffs.end()) { 
+        // Now check srqp.
+        seen = InitialCoeffSeen(curr_coeff_term[3], curr_coeff_term[2],
+          curr_coeff_term[1], curr_coeff_term[0]);
+        if (seen  == unique_coeffs.end()) { 
+          // Now check qpsr.
+          seen = InitialCoeffSeen(curr_coeff_term[1], curr_coeff_term[0],
+            curr_coeff_term[3], curr_coeff_term[2]);
+          if (seen  == unique_coeffs.end()) { 
+            // Now check rqps.
+            seen = InitialCoeffSeen(curr_coeff_term[2], curr_coeff_term[1],
+              curr_coeff_term[0], curr_coeff_term[3]);
+            if (seen  == unique_coeffs.end()) { 
+              // Now check qspr.
+              seen = InitialCoeffSeen(curr_coeff_term[1], curr_coeff_term[3],
+                curr_coeff_term[0], curr_coeff_term[2]);
+              if (seen  == unique_coeffs.end()) { 
+                // Now check rspq.
+                seen = InitialCoeffSeen(curr_coeff_term[2], curr_coeff_term[3],
+                  curr_coeff_term[0], curr_coeff_term[1]);
+              }
+            }
+          }
+        }
+      }
+    }
+    // If we've seen it before in one of the 7 permutations, set it equal to
+    // what was already seen before.
+    if (seen != unique_coeffs.end()) {
+      curr_coeff_term = *seen;
+    } else {
+      // We haven't seen it before, so add to set.
+      unique_coeffs.insert(curr_coeff_term);
+    }
+  }
+  prod_of_coeffs.insert(curr_coeff_term);
+  curr_coeff.product_of_coeffs = prod_of_coeffs;
+  std::vector<single_coeffs> sum_of_coeffs;
+  sum_of_coeffs.push_back(curr_coeff);
+
+  return sum_of_coeffs;
+}
+
 void ComputeCommutators::AddInitialTerms() {
   for (int p = 1; p <= num_orbitals; ++p) {
     for (int q = 1; q <= num_orbitals; ++q) {
@@ -17,11 +92,12 @@ void ComputeCommutators::AddInitialTerms() {
       term curr_term;
       curr_term.push_back(p);
       curr_term.push_back(-1 * q);
-      term curr_coeff_term(curr_term);
+      term curr_coeff_term;
+      curr_coeff_term.push_back(p);
+      curr_coeff_term.push_back(q);
 
       initial_terms_to_coefficients.AddNormalForm(curr_term,
-          compute_commutators_util::ComputeCommutatorsUtil::GetInitialSumCoeffs(
-          curr_coeff_term));
+          GetInitialSumCoeffs(curr_coeff_term));
 
       for (int r = 1; r <= num_orbitals; ++r) {
         for (int s = 1; s <= num_orbitals; ++s) {
@@ -33,11 +109,14 @@ void ComputeCommutators::AddInitialTerms() {
             curr_term.push_back(q);
             curr_term.push_back(-1 * r);
             curr_term.push_back(-1 * s);
-            term curr_coeff_term(curr_term);
+            term curr_coeff_term;
+            curr_coeff_term.push_back(p);
+            curr_coeff_term.push_back(q);
+            curr_coeff_term.push_back(r);
+            curr_coeff_term.push_back(s);
 
             initial_terms_to_coefficients.AddNormalForm(curr_term,
-                compute_commutators_util::ComputeCommutatorsUtil
-                ::GetInitialSumCoeffs(curr_coeff_term));
+                GetInitialSumCoeffs(curr_coeff_term));
           }
         }
       }
@@ -48,6 +127,10 @@ void ComputeCommutators::AddInitialTerms() {
   for (auto it = initial_terms_to_coefficients.Begin();
       it != initial_terms_to_coefficients.End(); ++it) {
     initial_terms.insert(it->first);
+fprintf(stderr, "\nTerm\n");
+compute_commutators_util::ComputeCommutatorsUtil::PrintIndices(stderr, it->first);
+fprintf(stderr, "\nCoeff\n");
+compute_commutators_util::ComputeCommutatorsUtil::PrintSumOfCoeffs(stderr, it->second);
   }
   fprintf(stderr, "Initial terms size: %lu\n", initial_terms.size());
 }

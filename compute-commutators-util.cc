@@ -4,42 +4,6 @@ namespace compute_commutators_util {
 
 typedef compute_commutators_util::single_coeffs single_coeffs;
 
-std::vector<single_coeffs> ComputeCommutatorsUtil::GetInitialSumCoeffs(
-    std::vector<int> curr_coeff_term) {
-  // Return a sum of single_coeffs that has just one coeff in the sum (the
-  // one corresponding to the initial term).
-  single_coeffs curr_coeff;
-  std::multiset<std::vector<int> > prod_of_coeffs;
-  // If a pq term, check for pq = qp symmetry. If a pqrs term, check for
-  // pqrs = qprs = pqsr = qpsr symmetry 
-  if (curr_coeff_term.size() == 2) {
-    // swap so that we consistently have [p, q] with p < q
-    if (curr_coeff_term[1] < curr_coeff_term[0]) {
-      int temp = curr_coeff_term[1];
-      curr_coeff_term[1] = curr_coeff_term[0];
-      curr_coeff_term[0] = temp;
-    }
-  } else if (curr_coeff_term.size() == 4) {
-    // swap so that we consistently have [p, q, r, s] with p < q, r < s
-    if (curr_coeff_term[1] < curr_coeff_term[0]) {
-      int temp = curr_coeff_term[1];
-      curr_coeff_term[1] = curr_coeff_term[0];
-      curr_coeff_term[0] = temp;
-    }
-    if (curr_coeff_term[3] < curr_coeff_term[2]) {
-      int temp = curr_coeff_term[3];
-      curr_coeff_term[3] = curr_coeff_term[2];
-      curr_coeff_term[2] = temp;
-    }
-  }
-  prod_of_coeffs.insert(curr_coeff_term);
-  curr_coeff.product_of_coeffs = prod_of_coeffs;
-  std::vector<single_coeffs> sum_of_coeffs;
-  sum_of_coeffs.push_back(curr_coeff);
-
-  return sum_of_coeffs;
-}
-
 term ComputeCommutatorsUtil::GetConjugate(const term& curr_term) {
   term conjugate;
   for (auto rit = curr_term.rbegin(); rit != curr_term.rend(); ++rit) {
@@ -169,8 +133,8 @@ void TermsToCoeffsMap::AddNormalForm(term curr_term,
           }
         }
         // Flip the sign of the coefficient because we swapped.
-        for (single_coeffs one_coeff_term : curr_coeff) {
-          one_coeff_term.integer_multiplier *= -1;
+        for (auto it = curr_coeff.begin(); it != curr_coeff.end(); ++it) {
+          it->integer_multiplier *= -1;
         }
       } else {  // No more terms out of order, so stop swapping.
         break;
